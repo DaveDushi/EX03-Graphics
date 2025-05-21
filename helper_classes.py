@@ -193,11 +193,15 @@ class Triangle(Object3D):
 
     # computes normal to the trainagle surface. Pay attention to its direction!
     def compute_normal(self):
-        """Compute and return the unit normal of the triangle."""
-        edge1 = self.b - self.a
-        edge2 = self.c - self.a
-        normal = np.cross(edge1, edge2)
-        return normalize(normal)
+        # Compute the surface normal based on the order of the
+        # vertices (A -> B -> C). The normal direction follows the
+        # right‐hand rule and is normalized for later calculations.
+        ab = self.b - self.a
+        ac = self.c - self.a
+        n = np.cross(ab, ac)
+        if np.linalg.norm(n) == 0:
+            return np.array([0.0, 0.0, 0.0])
+        return normalize(n)
 
     def intersect(self, ray: Ray):
         """Return the intersection of ``ray`` with the triangle."""
@@ -264,18 +268,38 @@ A /&&&&&&&&&&&&&&&&&&&&\ B &&&/ C
                 [1,2,3],
                 [0,3,2],
                  [4,1,0],
-                 [4,2,1],
+                [4,2,1],
                  [2,4,0]]
-        # TODO
+        # Generate Triangle objects for each face using the vertex indices
+        for idx0, idx1, idx2 in t_idx:
+            tri = Triangle(self.v_list[idx0], self.v_list[idx1], self.v_list[idx2])
+            l.append(tri)
         return l
 
     def apply_materials_to_triangles(self):
-        # TODO
-        pass
+        # Propagate the diamond material to all of its triangles so that
+        # intersection tests return triangles with the correct material
+        if not hasattr(self, 'ambient'):
+            return
+        for tri in self.triangle_list:
+            tri.set_material(self.ambient, self.diffuse, self.specular,
+                             self.shininess, self.reflection)
 
     def intersect(self, ray: Ray):
-        # TODO
-        pass
+        # Iterate through all triangles and return the closest intersection
+        nearest_t = np.inf
+        nearest_obj = None
+        for tri in self.triangle_list:
+            hit = tri.intersect(ray)
+            if hit is None:
+                continue
+            t, obj = hit
+            if t < nearest_t:
+                nearest_t = t
+                nearest_obj = obj
+        if nearest_obj is not None:
+            return nearest_t, nearest_obj
+        return None
 
 class Sphere(Object3D):
     def __init__(self, center, radius: float):
