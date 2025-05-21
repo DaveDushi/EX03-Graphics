@@ -229,6 +229,49 @@ class Sphere(Object3D):
         self.radius = radius
 
     def intersect(self, ray: Ray):
-        #TODO
-        pass
+        """Return the intersection distance ``t`` and the object if the ray
+        intersects the sphere.
+
+        Parameters
+        ----------
+        ray : Ray
+            Ray for which we want to find the intersection with the sphere.
+
+        Returns
+        -------
+        tuple or None
+            ``(t, self)`` where ``t`` is the distance from the ray origin to
+            the intersection point. ``None`` is returned when there is no
+            intersection in front of the ray origin.
+        """
+
+        # Vector from ray origin to the sphere center
+        oc = ray.origin - np.array(self.center)
+
+        # Coefficients of the quadratic equation a*t^2 + b*t + c = 0
+        a = np.dot(ray.direction, ray.direction)
+        b = 2 * np.dot(ray.direction, oc)
+        c = np.dot(oc, oc) - self.radius * self.radius
+
+        discriminant = b * b - 4 * a * c
+        if discriminant < 0:
+            return None
+
+        sqrt_disc = np.sqrt(discriminant)
+
+        # Find the nearest positive intersection
+        t1 = (-b - sqrt_disc) / (2 * a)
+        t2 = (-b + sqrt_disc) / (2 * a)
+
+        t = None
+        if t1 > 1e-6 and t2 > 1e-6:
+            t = min(t1, t2)
+        elif t1 > 1e-6:
+            t = t1
+        elif t2 > 1e-6:
+            t = t2
+
+        if t is not None:
+            return t, self
+        return None
 
