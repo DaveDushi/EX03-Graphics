@@ -55,6 +55,7 @@ class DirectionalLight(LightSource):
 
     # This function returns the distance from a point to the light source
     def get_distance_from_light(self, intersection):
+
         # Directional light has no specific origin, hence the distance is
         # conceptually infinite. This can be used to disable attenuation.
         return np.inf
@@ -79,15 +80,15 @@ class PointLight(LightSource):
 
     # This function returns the distance from a point to the light source
     def get_distance_from_light(self,intersection):
-        #TODO
-        pass
+        # Euclidean distance from the intersection point to the light position
+        return np.linalg.norm(self.position - intersection)
 
     # This function returns the light intensity at a point
     def get_intensity(self, intersection):
-        # calculate distance between light source and intersection 
-        # calculate and return the light intensity based on kc, kl, kq
-        #TODO
-        pass
+        # calculate distance between light source and intersection
+        d = self.get_distance_from_light(intersection)
+        attenuation = 1.0 / (self.kc + self.kl * d + self.kq * d * d)
+        return self.intensity * attenuation
 
 
 class SpotLight(LightSource):
