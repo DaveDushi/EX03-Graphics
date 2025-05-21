@@ -35,7 +35,8 @@ def reflected(vector, axis):
 
 class LightSource:
     def __init__(self, intensity):
-        self.intensity = intensity
+        # store intensity as numpy array to allow element-wise operations
+        self.intensity = np.array(intensity, dtype=float)
 
 
 class DirectionalLight(LightSource):
@@ -138,9 +139,10 @@ class Ray:
 
 class Object3D:
     def set_material(self, ambient, diffuse, specular, shininess, reflection):
-        self.ambient = ambient
-        self.diffuse = diffuse
-        self.specular = specular
+        # convert lists to numpy arrays for vector math
+        self.ambient = np.array(ambient, dtype=float)
+        self.diffuse = np.array(diffuse, dtype=float)
+        self.specular = np.array(specular, dtype=float)
         self.shininess = shininess
         self.reflection = reflection
 
