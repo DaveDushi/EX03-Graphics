@@ -9,9 +9,26 @@ def normalize(vector):
 # This function gets a vector and the normal of the surface it hit
 # This function returns the vector that reflects from the surface
 def reflected(vector, axis):
-    # TODO:
-    v = np.array([0,0,0])
-    return v
+    """Return the reflection of ``vector`` around ``axis``.
+
+    Parameters
+    ----------
+    vector : array_like
+        Incoming vector that should be reflected.
+    axis : array_like
+        Surface normal (the axis we reflect about).
+
+    Returns
+    -------
+    numpy.ndarray
+        The reflected vector.
+    """
+
+    # Ensure the axis is normalized to avoid scaling the result
+    n = normalize(axis)
+    # Compute the reflection using the formula r = v - 2*(v·n)*n
+    reflected_vec = vector - 2 * np.dot(vector, n) * n
+    return reflected_vec
 
 ## Lights
 
@@ -25,22 +42,26 @@ class DirectionalLight(LightSource):
 
     def __init__(self, intensity, direction):
         super().__init__(intensity)
-        # TODO
+        # store the light direction as a normalized numpy array. the direction
+        # vector points from the light source **towards** the scene
+        self.direction = normalize(np.array(direction))
 
     # This function returns the ray that goes from the light source to a point
     def get_light_ray(self,intersection_point):
-        # TODO
-        return Ray()
+        # For a directional light, all rays share the same direction. The
+        # shadow ray originates from the intersection point and goes opposite
+        # to the light direction as we "look" towards the light source.
+        return Ray(intersection_point, -self.direction)
 
     # This function returns the distance from a point to the light source
     def get_distance_from_light(self, intersection):
-        #TODO
-        pass
+        # Directional light is considered to be infinitely far away
+        return np.inf
 
     # This function returns the light intensity at a point
     def get_intensity(self, intersection):
-        #TODO
-        pass
+        # Intensity does not decay with distance for a directional light
+        return self.intensity
 
 
 class PointLight(LightSource):
@@ -57,15 +78,15 @@ class PointLight(LightSource):
 
     # This function returns the distance from a point to the light source
     def get_distance_from_light(self,intersection):
-        #TODO
-        pass
+        # Euclidean distance from the intersection point to the light position
+        return np.linalg.norm(self.position - intersection)
 
     # This function returns the light intensity at a point
     def get_intensity(self, intersection):
-        # calculate distance between light source and intersection 
-        # calculate and return the light intensity based on kc, kl, kq
-        #TODO
-        pass
+        # calculate distance between light source and intersection
+        d = self.get_distance_from_light(intersection)
+        attenuation = 1.0 / (self.kc + self.kl * d + self.kq * d * d)
+        return self.intensity * attenuation
 
 
 class SpotLight(LightSource):
