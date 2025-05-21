@@ -42,22 +42,27 @@ class DirectionalLight(LightSource):
 
     def __init__(self, intensity, direction):
         super().__init__(intensity)
-        # TODO
+        # a directional light is defined only by its incoming direction
+        # we normalize to keep subsequent computations stable
+        self.direction = normalize(np.array(direction))
 
     # This function returns the ray that goes from the light source to a point
     def get_light_ray(self,intersection_point):
-        # TODO
-        return Ray()
+        """Return a ray from ``intersection_point`` towards the light."""
+        # For directional light, all rays travel in the same direction
+        # (opposite to the light's direction vector).
+        return Ray(intersection_point, -self.direction)
 
     # This function returns the distance from a point to the light source
     def get_distance_from_light(self, intersection):
-        #TODO
-        pass
+        # Directional light has no specific origin, hence the distance is
+        # conceptually infinite. This can be used to disable attenuation.
+        return np.inf
 
     # This function returns the light intensity at a point
     def get_intensity(self, intersection):
-        #TODO
-        pass
+        # Intensity is constant everywhere for directional lights
+        return self.intensity
 
 
 class PointLight(LightSource):
