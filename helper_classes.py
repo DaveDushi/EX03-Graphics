@@ -121,7 +121,18 @@ class Ray:
         intersections = None
         nearest_object = None
         min_distance = np.inf
-        #TODO
+
+        # Iterate over all objects and keep track of the closest intersection
+        for obj in objects:
+            hit = obj.intersect(self)
+            if hit is None:
+                continue
+            # `intersect` is expected to return a tuple (distance, obj)
+            distance, hit_obj = hit
+            if distance < min_distance:
+                min_distance = distance
+                nearest_object = hit_obj
+
         return nearest_object, min_distance
 
 
