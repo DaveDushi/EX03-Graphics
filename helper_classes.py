@@ -9,9 +9,26 @@ def normalize(vector):
 # This function gets a vector and the normal of the surface it hit
 # This function returns the vector that reflects from the surface
 def reflected(vector, axis):
-    # TODO:
-    v = np.array([0,0,0])
-    return v
+    """Return the reflection of ``vector`` around ``axis``.
+
+    Parameters
+    ----------
+    vector : array_like
+        Incoming vector that should be reflected.
+    axis : array_like
+        Surface normal (the axis we reflect about).
+
+    Returns
+    -------
+    numpy.ndarray
+        The reflected vector.
+    """
+
+    # Ensure the axis is normalized to avoid scaling the result
+    n = normalize(axis)
+    # Compute the reflection using the formula r = v - 2*(v·n)*n
+    reflected_vec = vector - 2 * np.dot(vector, n) * n
+    return reflected_vec
 
 ## Lights
 
