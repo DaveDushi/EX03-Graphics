@@ -95,20 +95,34 @@ class PointLight(LightSource):
 class SpotLight(LightSource):
     def __init__(self, intensity, position, direction, kc, kl, kq):
         super().__init__(intensity)
-        # TODO
+        # store spotlight position and direction
+        self.position = np.array(position, dtype=float)
+        # normalize the incoming direction of the spot light
+        self.direction = normalize(np.array(direction, dtype=float))
+        # attenuation coefficients
+        self.kc = kc
+        self.kl = kl
+        self.kq = kq
 
     # This function returns the ray that goes from the light source to a point
     def get_light_ray(self, intersection):
-        #TODO
-        pass
+        # ray from the intersection point towards the light position
+        return Ray(intersection, normalize(self.position - intersection))
 
     def get_distance_from_light(self, intersection):
-        #TODO
-        pass
+        return np.linalg.norm(self.position - intersection)
 
     def get_intensity(self, intersection):
-        #TODO
-        pass
+        # distance attenuation similar to a point light
+        d = self.get_distance_from_light(intersection)
+        attenuation = 1.0 / (self.kc + self.kl * d + self.kq * d * d)
+
+        # spotlight factor based on the angle between light direction and the
+        # vector from the light to the intersection point
+        to_point = normalize(intersection - self.position)
+        spot_factor = max(np.dot(self.direction, to_point), 0.0)
+
+        return self.intensity * attenuation * spot_factor
 
 
 class Ray:
@@ -181,7 +195,7 @@ class Triangle(Object3D):
     def compute_normal(self):
         # Compute the surface normal based on the order of the
         # vertices (A -> B -> C). The normal direction follows the
-        # right-hand rule and is normalized for later calculations.
+        # right‐hand rule and is normalized for later calculations.
         ab = self.b - self.a
         ac = self.c - self.a
         n = np.cross(ab, ac)
@@ -190,24 +204,28 @@ class Triangle(Object3D):
         return normalize(n)
 
     def intersect(self, ray: Ray):
-        # Ray/triangle intersection using the Möller-Trumbore algorithm
+        """Return the intersection of ``ray`` with the triangle."""
         epsilon = 1e-6
 
         edge1 = self.b - self.a
         edge2 = self.c - self.a
+
         h = np.cross(ray.direction, edge2)
         a = np.dot(edge1, h)
-        if -epsilon < a < epsilon:
+        if abs(a) < epsilon:
             return None
+
         f = 1.0 / a
         s = ray.origin - self.a
         u = f * np.dot(s, h)
         if u < 0.0 or u > 1.0:
             return None
+
         q = np.cross(s, edge1)
         v = f * np.dot(ray.direction, q)
         if v < 0.0 or u + v > 1.0:
             return None
+
         t = f * np.dot(edge2, q)
         if t > epsilon:
             return t, self
